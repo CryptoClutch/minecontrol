@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MineControl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0E0F;
+    --panel: #14181A;
+    --panel-border: #232928;
+    --text-primary: #E8ECEC;
+    --text-muted: #8A9296;
+    --amber: #FF8A2B;
+    --teal: #3DD9C4;
+    --red: #FF4545;
+    --yellow: #FFD23D;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(255,138,43,0.06), transparent 45%),
+      radial-gradient(circle at 85% 100%, rgba(61,217,196,0.05), transparent 45%);
+  }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--panel-border);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  header h1 span {
+    color: var(--amber);
+  }
+
+  .conn-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+  .dot.live { background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+
+  main {
+    padding: 28px 32px 60px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .rig-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+    gap: 20px;
+  }
+
+  .rig-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .rig-head {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .rig-name {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+  }
+
+  .rig-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 16px;
+  }
+
+  .rig-meta b { color: var(--text-primary); font-weight: 600; }
+
+  .status-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: rgba(61,217,196,0.12);
+    color: var(--teal);
+    border: 1px solid rgba(61,217,196,0.3);
+  }
+  .status-pill.offline {
+    background: rgba(138,146,150,0.12);
+    color: var(--text-muted);
+    border-color: rgba(138,146,150,0.3);
+  }
+
+  .gpu-row {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--panel-border);
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    position: relative;
+  }
+  .gpu-row:last-child { border-bottom: none; }
+
+  .gpu-row.fault {
+    animation: faultPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes faultPulse {
+    0%, 100% { background: transparent; }
+    50% { background: rgba(255, 69, 69, 0.07); }
+  }
+
+  .gpu-idx {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .gpu-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .gpu-name-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+
+  .gpu-name {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .gpu-hash {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  .heat-track {
+    height: 6px;
+    border-radius: 3px;
+    background: #1E2426;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .heat-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease, background 0.6s ease;
+  }
+
+  .gpu-stats {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .gpu-stats .temp-val {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state .big {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+
+  .fleet-total {
+    display: flex;
+    gap: 28px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .fleet-total b {
+    color: var(--amber);
+    font-size: 15px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Mine<span>Control</span></h1>
+  <div class="fleet-total" id="fleet-total"></div>
+  <div class="conn-status"><span class="dot" id="conn-dot"></span><span id="conn-text">connecting…</span></div>
+</header>
+
+<main>
+  <div class="rig-grid" id="rig-grid">
+    <div class="empty-state">
+      <div class="big">awaiting telemetry</div>
+      <div>No rigs have checked in yet. Register a rig and start its agent.</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const wsUrl = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+let ws;
+
+function heatColor(temp) {
+  if (temp >= 90) return 'var(--red)';
+  if (temp >= 80) return 'var(--amber)';
+  if (temp >= 65) return 'var(--yellow)';
+  return 'var(--teal)';
+}
+
+function gpuRowHtml(gpu) {
+  const pct = Math.min(100, (gpu.temp_c / 100) * 100);
+  const color = heatColor(gpu.temp_c);
+  const isFault = gpu.temp_c >= 80 && gpu.fan_pct <= 35;
+  const isZero = gpu.hashrate <= 0;
+  return `
+    <div class="gpu-row ${isFault || isZero ? 'fault' : ''}">
+      <div class="gpu-idx mono">#${gpu.gpu_index}</div>
+      <div class="gpu-main">
+        <div class="gpu-name-line">
+          <span class="gpu-name">${gpu.name || 'GPU ' + gpu.gpu_index}</span>
+          <span class="gpu-hash mono">${gpu.hashrate ? gpu.hashrate.toFixed(1) + ' TH/s' : '— idle —'}</span>
+        </div>
+        <div class="heat-track">
+          <div class="heat-fill" style="width:${pct}%; background:${color}; box-shadow: 0 0 8px ${color};"></div>
+        </div>
+      </div>
+      <div class="gpu-stats">
+        <span class="temp-val" style="color:${color}">${gpu.temp_c.toFixed(0)}°C</span>
+        <span>fan ${gpu.fan_pct.toFixed(0)}% · ${gpu.power_draw_w.toFixed(0)}W</span>
+        <span>${gpu.core_clock_mhz.toFixed(0)}/${gpu.mem_clock_mhz.toFixed(0)}MHz</span>
+      </div>
+    </div>
+  `;
+}
+
+function rigCardHtml(rig) {
+  const online = rig.status === 'online';
+  const totalHash = rig.gpus.reduce((s, g) => s + (g.hashrate || 0), 0);
+  const totalPower = rig.gpus.reduce((s, g) => s + (g.power_draw_w || 0), 0);
+  return `
+    <div class="rig-card">
+      <div class="rig-head">
+        <div>
+          <div class="rig-name">${rig.name}</div>
+          <div class="rig-meta">
+            <span><b>${totalHash.toFixed(1)}</b> TH/s</span>
+            <span><b>${totalPower.toFixed(0)}</b> W</span>
+            <span><b>${rig.gpus.length}</b> GPUs</span>
+          </div>
+        </div>
+        <span class="status-pill ${online ? '' : 'offline'}">${rig.status}</span>
+      </div>
+      ${rig.gpus.map(gpuRowHtml).join('')}
+    </div>
+  `;
+}
+
+function render(rigs) {
+  const grid = document.getElementById('rig-grid');
+  if (!rigs.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="big">awaiting telemetry</div><div>No rigs have checked in yet. Register a rig and start its agent.</div></div>`;
+    document.getElementById('fleet-total').innerHTML = '';
+    return;
+  }
+  grid.innerHTML = rigs.map(rigCardHtml).join('');
+
+  const totalHash = rigs.reduce((s, r) => s + r.gpus.reduce((a, g) => a + (g.hashrate || 0), 0), 0);
+  const totalGpus = rigs.reduce((s, r) => s + r.gpus.length, 0);
+  const onlineRigs = rigs.filter(r => r.status === 'online').length;
+  document.getElementById('fleet-total').innerHTML = `
+    <span><b>${totalHash.toFixed(1)}</b> TH/s fleet</span>
+    <span><b>${totalGpus}</b> GPUs</span>
+    <span><b>${onlineRigs}/${rigs.length}</b> rigs online</span>
+  `;
+}
+
+function connect() {
+  ws = new WebSocket(wsUrl);
+  ws.onopen = () => {
+    document.getElementById('conn-dot').classList.add('live');
+    document.getElementById('conn-text').textContent = 'live';
+  };
+  ws.onclose = () => {
+    document.getElementById('conn-dot').classList.remove('live');
+    document.getElementById('conn-text').textContent = 'reconnecting…';
+    setTimeout(connect, 2000);
+  };
+  ws.onmessage = (evt) => {
+    const data = JSON.parse(evt.data);
+    if (data.type === 'snapshot') render(data.rigs);
+  };
+}
+
+connect();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+# MineControl Rig Agent - systemd unit template
+#
+# 1. Copy this file to /etc/systemd/system/minecontrol-agent.service
+# 2. Replace every <PLACEHOLDER> below with your actual values
+# 3. Adjust WorkingDirectory/ExecStart paths if you cloned the repo somewhere
+#    other than the suggested location
+# 4. sudo systemctl daemon-reload && sudo systemctl enable --now minecontrol-agent
+
+[Unit]
+Description=MineControl Rig Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=<PATH_TO_REPO>/agent
+Environment="MINECONTROL_HEAD_URL=http://<TRUENAS_LAN_IP>:8000"
+Environment="MINECONTROL_RIG_NAME=<RIG_NAME>"
+Environment="MINECONTROL_RIG_ID=<RIG_ID_FROM_REGISTRATION>"
+Environment="PEAKMINER_API_URL=http://127.0.0.1:4068/summary"
+# Optional: "octominer" or "none" - auto-detected if unset
+# Environment="MINECONTROL_BOARD_TYPE=octominer"
+# Optional: set to "false" to disable the watchdog's reboot escalation step
+# (it will restart the miner again instead, but still fires the Discord alert)
+# Environment="MINECONTROL_ALLOW_REBOOT=true"
+ExecStart=/usr/bin/python3 <PATH_TO_REPO>/agent/agent.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

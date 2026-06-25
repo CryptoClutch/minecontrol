@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  minecontrol:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: minecontrol
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MINECONTROL_DB_PATH=/data/minecontrol.db
+      # Set your Discord webhook URL here, or better, in Dockge's environment/secrets UI
+      - DISCORD_WEBHOOK_URL=
+    volumes:
+      # REQUIRED: point this at a real dataset path on your TrueNAS pool, e.g.
+      # /mnt/your-pool/apps/minecontrol/data:/data
+      - <YOUR_TRUENAS_DATASET_PATH>:/data

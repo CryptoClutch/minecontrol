@@ -4,7 +4,7 @@ A self-hosted, flight-sheet-style mining fleet manager. Head node runs on TrueNA
 (via Dockge), with lightweight agents on each rig reporting telemetry and pulling
 config (coin/pool/wallet + per-GPU overclock profiles).
 
-> **Before you push this to GitHub:** this repo intentionally ships with no
+> This repo intentionally ships with no
 > wallet addresses, IPs, or hostnames baked in — everything real lives in your
 > own `.service` file (gitignored) or shell env, not in tracked files. Keep it
 > that way: don't commit a filled-in `minecontrol-agent.service`, only the
